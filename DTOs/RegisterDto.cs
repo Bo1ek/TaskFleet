@@ -15,6 +15,8 @@ public class RegisterDto
     [Required]
     [StringLength(15, MinimumLength = 3, ErrorMessage = "Last name must be at least {2}, and maximum {1} characters")]
     public string LastName { get; set; }
+    [Required(ErrorMessage = "Role is required")]
+    public string Role { get; set; }
     [Required(ErrorMessage = "Password is required")]
     [StringLength(15, MinimumLength = 6, ErrorMessage = "Password must be at least {2}, and maximum {1} characters")]
     public string Password { get; set; }
