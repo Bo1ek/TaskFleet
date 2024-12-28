@@ -6,6 +6,7 @@ namespace TaskFleet.Data;
 
 public class ApplicationDbContext : IdentityDbContext<User>
 {
+    public DbSet<Ticket> Tickets { get; set; }
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
         : base(options)
     {
@@ -17,6 +18,12 @@ public class ApplicationDbContext : IdentityDbContext<User>
         base.OnModelCreating(builder);
         
         builder.Entity<User>().Property(u => u.Id).ValueGeneratedOnAdd();
+
+        builder.Entity<Ticket>()
+            .HasOne(t => t.AssignedUser)
+            .WithMany()
+            .HasForeignKey(t => t.AssignedUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
     
 }

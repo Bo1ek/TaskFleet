@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TaskFleet.Data;
 using TaskFleet.DTOs;
 using TaskFleet.Models;
 
@@ -14,13 +15,15 @@ public class AccountsController : ControllerBase
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly ApplicationDbContext _context;
 
     public AccountsController(SignInManager<User> signInManager, UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _roleManager = roleManager;
+        _context = context;
     }
 
     [HttpPost("register")]
@@ -86,5 +89,20 @@ public class AccountsController : ControllerBase
     public IActionResult GetProtected()
     {
         return Ok(new { Message = "Access granted to protected endpoint." });
+    }
+
+    [HttpPut]
+    public async Task<ActionResult<List<User>>> UpdateUser(User updatedUser)
+    {
+        var dbUser = await _context.Users.FindAsync(updatedUser.Id);
+        if (dbUser == null) return NotFound("User not found");
+        
+        dbUser.FirstName = updatedUser.FirstName;
+        dbUser.LastName = updatedUser.LastName;
+        dbUser.Email = updatedUser.Email;
+        dbUser.UserName = updatedUser.UserName;
+        
+        await _context.SaveChangesAsync();
+        return Ok(dbUser);
     }
 }
