@@ -45,7 +45,6 @@ public class AccountsController : ControllerBase
             var roleResult = await _roleManager.CreateAsync(new IdentityRole(model.Role));
             if (!roleResult.Succeeded) return BadRequest(roleResult.Errors);
         }
-
         // Assign the user to the role
         var addToRoleResult = await _userManager.AddToRoleAsync(userToAdd, model.Role);
         if (!addToRoleResult.Succeeded) return BadRequest("Failed to add user to role");
@@ -69,6 +68,9 @@ public class AccountsController : ControllerBase
         var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: false);
         if (!result.Succeeded)
             return Unauthorized(new { Message = "Invalid email or password" });
+        
+        await _signInManager.SignInAsync(user, isPersistent: false);
+        
         return Ok(new
         {
             Message = "Login successful",

@@ -11,14 +11,14 @@ builder.Services.AddCors(options =>
         { 
             policy.WithOrigins("http://localhost:3000")
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials();
         });
 });
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthorization();
 
 builder.Services
     .AddIdentity<User,IdentityRole>()
@@ -30,6 +30,19 @@ builder.Services
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/api/Accounts/login"; // Redirect for unauthorized access
+    options.LogoutPath = "/api/Accounts/logout";
+    options.Cookie.Name = "AuthCookie";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Enforce secure cookies
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromHours(1); // Cookie expiration
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
