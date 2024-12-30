@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TaskFleet.Models;
 
@@ -16,7 +17,22 @@ public class ApplicationDbContext : IdentityDbContext<User>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
+        List<IdentityRole> roles = new()
+        {
+            new IdentityRole
+            {
+                Id = "1",
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            },
+            new IdentityRole
+            {
+                Id = "2",
+                Name = "User",
+                NormalizedName = "USER"
+            },
+        };
+        builder.Entity<IdentityRole>().HasData(roles);
         builder.Entity<User>().Property(u => u.Id).ValueGeneratedOnAdd();
 
         builder.Entity<Ticket>()

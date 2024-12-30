@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TaskFleet.Data;
 using TaskFleet.DTOs;
+using TaskFleet.Interfaces;
 using TaskFleet.Models;
 
 namespace TaskFleet.Controllers;
@@ -16,67 +18,85 @@ public class AccountsController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ApplicationDbContext _context;
-
+    private readonly ITokenService _tokenService;
     public AccountsController(SignInManager<User> signInManager, UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
+        RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ITokenService tokenService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _roleManager = roleManager;
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto model)
     {
-        var userToAdd = new User
+        try
         {
-            FirstName = model.FirstName.ToLower(),
-            LastName = model.LastName.ToLower(),
-            UserName = model.Email.ToLower(),
-            Email = model.Email.ToLower(),
-        };
-        // check if the user exists
-        var result = await _userManager.CreateAsync(userToAdd, model.Password);
-        if (!result.Succeeded) return BadRequest(result.Errors);
-        // Check if the role exists
-        if (!await _roleManager.RoleExistsAsync(model.Role))
-        {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(model.Role));
-            if (!roleResult.Succeeded) return BadRequest(roleResult.Errors);
-        }
-        // Assign the user to the role
-        var addToRoleResult = await _userManager.AddToRoleAsync(userToAdd, model.Role);
-        if (!addToRoleResult.Succeeded) return BadRequest("Failed to add user to role");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
+            var user = new User
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            };
+            
+            var createdUser = await _userManager.CreateAsync(user, model.Password);
 
-        return Ok(new
+            if (createdUser.Succeeded)
+            {
+                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                if (roleResult.Succeeded)
+                {
+                    return Ok(
+                        new NewUserDto
+                        {
+                            Email = user.Email,
+                            Token = _tokenService.CreateToken(user),
+                        });
+                }
+                else
+                {
+                    return StatusCode(500, roleResult.Errors);
+                }
+            }
+            else
+            {
+                return StatusCode(500,createdUser.Errors);
+            }
+            
+        }
+        catch (Exception e)
         {
-            Message = "User registered and assigned to the role successfully",
-            UserId = userToAdd.Id,
-            Role = model.Role
-        });
+            return StatusCode(500, e.Message);
+        }
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto model)
     {
-        // Find user by email
-        var user = await _userManager.FindByEmailAsync(model.Email);
+        if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == model.Email.ToLower());
+        
         if (user == null) 
-            return Unauthorized(new { Message = "Invalid email or password" });
-        // Check the password
-        var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: false);
+            return Unauthorized("Invalid Email!");
+        
+        var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded)
-            return Unauthorized(new { Message = "Invalid email or password" });
-        
-        await _signInManager.SignInAsync(user, isPersistent: false);
-        
-        return Ok(new
-        {
-            Message = "Login successful",
-            UserId = user.Id,
-            Email = user.Email
-        });
+            return Unauthorized("Username not found and/or password is incorrect!");
+
+        return Ok(
+            new NewUserDto
+            {
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user),
+            }
+        );
     }
     
     [HttpPost("logout")]
