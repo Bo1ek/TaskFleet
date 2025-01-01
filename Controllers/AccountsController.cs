@@ -49,7 +49,8 @@ public class AccountsController : ControllerBase
 
             if (createdUser.Succeeded)
             {
-                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                var role = string.IsNullOrEmpty(model.Role) ? "User" : model.Role;
+                var roleResult = await _userManager.AddToRoleAsync(user, role);
                 if (roleResult.Succeeded)
                 {
                     return Ok(
