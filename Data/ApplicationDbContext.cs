@@ -8,6 +8,7 @@ namespace TaskFleet.Data;
 public class ApplicationDbContext : IdentityDbContext<User>
 {
     public DbSet<Ticket> Tickets { get; set; }
+    public DbSet<Location> Locations {get; set;}
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
         : base(options)
     {
@@ -40,6 +41,17 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany()
             .HasForeignKey(t => t.AssignedUserId)
             .OnDelete(DeleteBehavior.SetNull);
+        builder.Entity<Ticket>()
+            .HasOne(t => t.StartLocation)
+            .WithMany()
+            .HasForeignKey(t => t.StartLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Ticket>()
+            .HasOne(t => t.EndLocation)
+            .WithMany()
+            .HasForeignKey(t => t.EndLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
     
 }

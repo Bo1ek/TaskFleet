@@ -5,7 +5,7 @@ namespace TaskFleet.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class messagesController : ControllerBase
+public class MessagesController : ControllerBase
 {
     [HttpGet]
     public IActionResult Get()

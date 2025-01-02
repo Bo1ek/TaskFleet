@@ -12,4 +12,6 @@ public class CreateTicketRequest
     public DateTime DueDate { get; set; } = DateTime.Now.AddDays(7);
     public bool IsCompleted { get; set; } = false;
     public string? AssignedUserId { get; set; }
+    public int? StartLocationId { get; set; }
+    public int? EndLocationId { get; set; }
 }
