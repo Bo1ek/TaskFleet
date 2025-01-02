@@ -128,4 +128,46 @@ public class AccountsController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(dbUser);
     }
+    
+    [HttpGet("details")]
+    public async Task<IActionResult> GetUserDetails([FromQuery] string email)
+    {
+        if (string.IsNullOrEmpty(email))
+        {
+            return BadRequest(new { Message = "Email is required" });
+        }
+
+        try
+        {
+            var user = await _context.Users
+                .Where(u => u.Email.ToLower() == email.ToLower())
+                .Select(u => new
+                {
+                    u.FirstName,
+                    u.LastName,
+                    u.Email
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(await _userManager.FindByEmailAsync(email));
+
+            return Ok(new
+            {
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                Role = roles.FirstOrDefault()
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
+        }
+    }
+
 }
