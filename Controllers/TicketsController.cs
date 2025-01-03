@@ -38,6 +38,14 @@ public class TicketsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Ticket>> CreateTicket(CreateTicketRequest createTicketRequest)
     {
+        if (!string.IsNullOrEmpty(createTicketRequest.AssignedUserId))
+        {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == createTicketRequest.AssignedUserId);
+            if (!userExists)
+            {
+                return BadRequest(new { Message = "Assigned user does not exist." });
+            }
+        }
         var ticket = createTicketRequest.MapToDbObject();
         _context.Tickets.Add(ticket);
         await _context.SaveChangesAsync();
