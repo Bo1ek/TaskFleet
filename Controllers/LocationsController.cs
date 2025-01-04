@@ -7,7 +7,7 @@ using TaskFleet.Models;
 namespace TaskFleet.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class LocationsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
