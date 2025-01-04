@@ -29,6 +29,12 @@ public class AccountsController : ControllerBase
         _tokenService = tokenService;
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+    {
+        return await _context.Users.ToListAsync();
+    }
+    
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto model)
     {

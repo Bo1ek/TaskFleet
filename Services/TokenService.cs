@@ -31,7 +31,7 @@ public class TokenService : ITokenService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddDays(1),
+            Expires = DateTime.UtcNow.AddHours(2),
             SigningCredentials = credentials,
             Issuer = _config["JWT:Issuer"],
             Audience = _config["JWT:Audience"]

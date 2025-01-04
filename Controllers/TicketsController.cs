@@ -7,7 +7,7 @@ using TaskFleet.Models.Mappers;
 
 namespace TaskFleet.Controllers;
 [ApiController]
-[Route("api/[controller]/[action]")]
+[Route("api/[controller]")]
 public class TicketsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -21,6 +21,8 @@ public class TicketsController : ControllerBase
     {
         return await _context.Tickets
             .Include(t => t.AssignedUser)
+            .Include(t => t.StartLocation)
+            .Include(t => t.EndLocation)
             .ToListAsync();
     }
     
@@ -29,6 +31,8 @@ public class TicketsController : ControllerBase
     {
         var ticket = await _context.Tickets
             .Include(t => t.AssignedUser)
+            .Include(t => t.StartLocation)
+            .Include(t => t.EndLocation)
             .FirstOrDefaultAsync(t => t.TicketId == id);
         if (ticket == null)
             return NotFound();
@@ -81,4 +85,31 @@ public class TicketsController : ControllerBase
 
         return NoContent();
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTicket(int id, UpdateTicketRequest updateRequest)
+    {
+        var ticket = await _context.Tickets.FindAsync(id);
+        if (ticket == null)
+        {
+            return NotFound();
+        }
+
+        if (!string.IsNullOrEmpty(updateRequest.AssignedUserId))
+        {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == updateRequest.AssignedUserId);
+            if (!userExists)
+            {
+                return BadRequest(new { Message = "Assigned user does not exist." });
+            }
+            ticket.AssignedUserId = updateRequest.AssignedUserId;
+        }
+
+        ticket.Title = updateRequest.Title ?? ticket.Title;
+        ticket.Description = updateRequest.Description ?? ticket.Description;
+        ticket.IsCompleted = updateRequest.IsCompleted ?? ticket.IsCompleted;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
 }
