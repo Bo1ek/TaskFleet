@@ -13,7 +13,9 @@ public static class TicketMapper
             IsCompleted = request.IsCompleted,
             DueDate = request.DueDate,
             CreatedDate = DateTime.Now,
-            AssignedUserId = request.AssignedUserId
+            AssignedUserId = request.AssignedUserId,
+            StartLocationId = request.StartLocationId,
+            EndLocationId = request.EndLocationId,
         };
     }
 }
