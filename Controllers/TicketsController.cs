@@ -26,6 +26,27 @@ public class TicketsController : ControllerBase
             .ToListAsync();
     }
     
+    [HttpGet("MyTickets")]
+    public async Task<ActionResult<IEnumerable<Ticket>>> GetMyTickets()
+    {
+        var userId = User.FindFirst("UserId")?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { Message = "User is not authenticated." });
+        }
+
+        var tickets = await _context.Tickets
+            .Where(t => t.AssignedUserId == userId)
+            .Include(t => t.AssignedUser)
+            .Include(t => t.StartLocation)
+            .Include(t => t.EndLocation)
+            .ToListAsync();
+
+        return Ok(tickets);
+    }
+
+    
     [HttpGet("{id}")]
     public async Task<ActionResult<Ticket>> GetTicketById(int id)
     {
