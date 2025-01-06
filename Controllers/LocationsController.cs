@@ -37,13 +37,15 @@ public class LocationsController : ControllerBase
     {
         var location = new Location
         {
-            City = request.City
+            City = request.City,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude
         };
-        
+
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
-        
-        return CreatedAtAction(nameof(GetLocation), new { id = location.LocationId, city = location.City }, location);
+
+        return CreatedAtAction(nameof(GetLocation), new { id = location.LocationId }, location);
     }
 
     [HttpPut("{id}")]
@@ -51,7 +53,17 @@ public class LocationsController : ControllerBase
     {
         if (location.LocationId != id)
             return BadRequest();
-        _context.Entry(location).State = EntityState.Modified;
+
+        var existingLocation = await _context.Locations.FindAsync(id);
+        if (existingLocation == null)
+            return NotFound();
+
+        existingLocation.City = location.City;
+        existingLocation.Latitude = location.Latitude;
+        existingLocation.Longitude = location.Longitude;
+
+        _context.Entry(existingLocation).State = EntityState.Modified;
+
         try
         {
             await _context.SaveChangesAsync();
