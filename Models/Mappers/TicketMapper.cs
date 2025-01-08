@@ -10,12 +10,12 @@ public static class TicketMapper
         {
             Title = request.Title,
             Description = request.Description,
-            IsCompleted = request.IsCompleted,
             DueDate = request.DueDate,
             CreatedDate = DateTime.Now,
             AssignedUserId = request.AssignedUserId,
             StartLocationId = request.StartLocationId,
             EndLocationId = request.EndLocationId,
+            Status = request.Status,
         };
     }
 }

@@ -106,6 +106,26 @@ public class TicketsController : ControllerBase
 
         return NoContent();
     }
+    
+    [HttpPost("{ticketId}/assignVehicle/{vehicleId}")]
+    public async Task<IActionResult> AssignVehicleToTicket(int ticketId, int vehicleId)
+    {
+        var ticket = await _context.Tickets.FindAsync(ticketId);
+        if (ticket == null) return NotFound("Ticket not found");
+
+        var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+        if (vehicle == null) return NotFound("Vehicle not found");
+
+        if (!vehicle.IsAvailable)
+        {
+            return BadRequest("Vehicle is already assigned to another ticket.");
+        }
+
+        ticket.AssignedVehicleId = vehicleId;
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTicket(int id, UpdateTicketRequest updateRequest)
     {
@@ -127,10 +147,35 @@ public class TicketsController : ControllerBase
 
         ticket.Title = updateRequest.Title ?? ticket.Title;
         ticket.Description = updateRequest.Description ?? ticket.Description;
-        ticket.IsCompleted = updateRequest.IsCompleted ?? ticket.IsCompleted;
+        ticket.DueDate = updateRequest.DueDate ?? ticket.DueDate;
+        ticket.Status = updateRequest.Status ?? ticket.Status;
 
         await _context.SaveChangesAsync();
         return NoContent();
     }
 
+    public async Task<IActionResult> UpdateTicketStatus(int id, UpdateTicketRequest updateRequest)
+    {
+        var ticket = await _context.Tickets.FindAsync(id);
+        if (ticket == null)
+        {
+            return NotFound();
+        }
+
+        if (!string.IsNullOrEmpty(updateRequest.AssignedUserId))
+        {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == updateRequest.AssignedUserId);
+            if (!userExists)
+            {
+                return BadRequest(new { Message = "Assigned user does not exist." });
+            }
+            ticket.AssignedUserId = updateRequest.AssignedUserId;
+        }
+
+        ticket.Title = updateRequest.Title ?? ticket.Title;
+        ticket.Description = updateRequest.Description ?? ticket.Description;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 }

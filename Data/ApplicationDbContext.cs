@@ -9,6 +9,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
 {
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Location> Locations {get; set;}
+    public DbSet<Vehicle> Vehicles {get; set;}
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
         : base(options)
     {
@@ -52,6 +53,15 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany()
             .HasForeignKey(t => t.EndLocationId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Ticket>().Property(t => t.Status)
+            .HasConversion<string>();
+        
+        builder.Entity<Vehicle>()
+            .HasOne(v => v.AssignedTicket)
+            .WithOne(t => t.AssignedVehicle)
+            .HasForeignKey<Ticket>(t => t.AssignedVehicleId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
     
 }
