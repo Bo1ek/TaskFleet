@@ -60,6 +60,23 @@ public class TicketsController : ControllerBase
         return ticket;
     }
     
+    [HttpPost("RequestATicket")]
+    public async Task<ActionResult<Ticket>> CreateTicketAsAClient(CreateTicketRequest createTicketRequest)
+    {
+        if (!string.IsNullOrEmpty(createTicketRequest.AssignedUserId))
+        {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == createTicketRequest.AssignedUserId);
+            if (!userExists)
+            {
+                return BadRequest(new { Message = "Assigned user does not exist." });
+            }
+        }
+        var ticket = createTicketRequest.MapToDbObject();
+        _context.Tickets.Add(ticket);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetTicketById), new { id = ticket.TicketId }, ticket);
+    }
+    
     [HttpPost]
     public async Task<ActionResult<Ticket>> CreateTicket(CreateTicketRequest createTicketRequest)
     {
@@ -154,6 +171,7 @@ public class TicketsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("UpdateTicketStatus/{id}")]
     public async Task<IActionResult> UpdateTicketStatus(int id, UpdateTicketRequest updateRequest)
     {
         var ticket = await _context.Tickets.FindAsync(id);
