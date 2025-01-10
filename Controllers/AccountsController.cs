@@ -42,6 +42,13 @@ public class AccountsController : ControllerBase
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            if (string.IsNullOrEmpty(model.Role))
+                return BadRequest(new {Message = "Role is required"});
+            
+            var roleExists = await _roleManager.RoleExistsAsync(model.Role);
+            if (!roleExists)
+                return BadRequest(new {Message = $"Role {model.Role} does not exist"});
             
             var user = new User
             {

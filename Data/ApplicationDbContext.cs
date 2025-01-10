@@ -24,12 +24,30 @@ public class ApplicationDbContext : IdentityDbContext<User>
             new IdentityRole
             {
                 Id = "1",
+                Name = "SuperAdmin",
+                NormalizedName = "SUPERADMIN"
+            },
+            new IdentityRole
+            {
+                Id = "2",
                 Name = "Admin",
                 NormalizedName = "ADMIN"
             },
             new IdentityRole
             {
-                Id = "2",
+                Id = "3",
+                Name = "Client",
+                NormalizedName = "CLIENT"
+            },
+            new IdentityRole
+            {
+                Id = "4",
+                Name = "Hr",
+                NormalizedName = "HR"
+            },
+            new IdentityRole
+            {
+                Id = "5",
                 Name = "User",
                 NormalizedName = "USER"
             },
