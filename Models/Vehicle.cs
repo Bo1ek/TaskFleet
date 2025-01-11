@@ -14,8 +14,9 @@ public class Vehicle
     [Required]
     public VehicleType Type { get; set; }
 
-    [Required] public int Capacity { get; set; } = 1;
-    public bool IsAvailable { get; set; }
+    public int? Capacity { get; set; } = 1;
+    public int? Seats { get; set; } = 1;
+    public bool IsAvailable { get; set; } = true;
     public int? AssignedTicketId { get; set; }
     public Ticket? AssignedTicket { get; set; }
 }
