@@ -12,8 +12,7 @@ public class CreateVehicleRequest
     [Required]
     public VehicleType Type { get; set; }
 
-    [Required]
-    [Range(0, int.MaxValue, ErrorMessage = "Capacity must be greater than zero!")]
-    public int Capacity { get; set; } = 1;
+    public int? Capacity { get; set; }
+    public int? Seats { get; set; }
     public int? AssignedTicketId { get; set; }
 }
