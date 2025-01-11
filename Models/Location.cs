@@ -16,4 +16,7 @@ public class Location
 
     [Range(-180, 180)]
     public double Longitude { get; set; }
+    [Required]
+    [MaxLength(250)]
+    public string Address { get; set; } = string.Empty;
 }

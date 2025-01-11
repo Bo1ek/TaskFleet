@@ -39,7 +39,8 @@ public class LocationsController : ControllerBase
         {
             City = request.City,
             Latitude = request.Latitude,
-            Longitude = request.Longitude
+            Longitude = request.Longitude,
+            Address = request.Address,
         };
 
         _context.Locations.Add(location);
@@ -61,6 +62,7 @@ public class LocationsController : ControllerBase
         existingLocation.City = location.City;
         existingLocation.Latitude = location.Latitude;
         existingLocation.Longitude = location.Longitude;
+        existingLocation.Address = location.Address;
 
         _context.Entry(existingLocation).State = EntityState.Modified;
 
@@ -81,7 +83,6 @@ public class LocationsController : ControllerBase
         }
         return NoContent();
     }
-    // DELETE: api/Location/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLocation(int id)
     {
