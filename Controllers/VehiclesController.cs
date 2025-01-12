@@ -61,9 +61,8 @@ public class VehiclesController : ControllerBase
         
         if (request.IsAvailable.HasValue)
             existingVehicle.IsAvailable = request.IsAvailable.Value;
-
-        if (request.AssignedTicketId.HasValue)
-            existingVehicle.AssignedTicketId = request.AssignedTicketId;
+        
+        existingVehicle.AssignedTicketId = request.AssignedTicketId;
         
         try
         {
@@ -82,6 +81,9 @@ public class VehiclesController : ControllerBase
             existingVehicle.AssignedTicketId = request.AssignedTicketId;
             existingVehicle.IsAvailable = false;
         }
+        else existingVehicle.IsAvailable = true;
+
+        existingVehicle.IsAvailable = request.AssignedTicketId == null;
         return NoContent();
     }
     

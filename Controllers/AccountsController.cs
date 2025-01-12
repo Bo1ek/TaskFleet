@@ -127,20 +127,30 @@ public class AccountsController : ControllerBase
         return Ok(new { Message = "Access granted to protected endpoint." });
     }
 
-    [HttpPut]
-    public async Task<ActionResult<List<User>>> UpdateUser(User updatedUser)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(string id, [FromBody] User updatedUser)
     {
-        var dbUser = await _context.Users.FindAsync(updatedUser.Id);
-        if (dbUser == null) return NotFound("User not found");
-        
-        dbUser.FirstName = updatedUser.FirstName;
-        dbUser.LastName = updatedUser.LastName;
-        dbUser.Email = updatedUser.Email;
-        dbUser.UserName = updatedUser.UserName;
-        
-        await _context.SaveChangesAsync();
-        return Ok(dbUser);
+        try
+        {
+            var dbUser = await _context.Users.FindAsync(id);
+            if (dbUser == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            dbUser.FirstName = updatedUser.FirstName;
+            dbUser.LastName = updatedUser.LastName;
+            dbUser.Email = updatedUser.Email;
+
+            await _context.SaveChangesAsync();
+            return Ok(dbUser);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
+        }
     }
+
     
     [HttpGet("details")]
     public async Task<IActionResult> GetUserDetails([FromQuery] string email)
@@ -182,5 +192,33 @@ public class AccountsController : ControllerBase
             return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
         }
     }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        try
+        {
+            string idAsString = id.ToString();
+
+            var user = await _context.Users.FindAsync(idAsString);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            return Ok(new
+            {
+                user.FirstName,
+                user.LastName,
+                user.Email
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetUserById: {ex.Message}");
+            return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
+        }
+    }
+
 
 }
