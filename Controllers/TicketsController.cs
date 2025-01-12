@@ -132,13 +132,23 @@ public class TicketsController : ControllerBase
 
         var vehicle = await _context.Vehicles.FindAsync(vehicleId);
         if (vehicle == null) return NotFound("Vehicle not found");
-
         if (!vehicle.IsAvailable)
         {
             return BadRequest("Vehicle is already assigned to another ticket.");
         }
 
+        if (ticket.AssignedVehicleId.HasValue)
+        {
+            var previousVehicle = await _context.Vehicles.FindAsync(ticket.AssignedVehicleId.Value);
+            if (previousVehicle != null)
+            {
+                previousVehicle.AssignedTicketId = 0;
+                previousVehicle.IsAvailable = true;
+            }
+        }
         ticket.AssignedVehicleId = vehicleId;
+        vehicle.AssignedTicketId = ticketId;
+        vehicle.IsAvailable = false;
         await _context.SaveChangesAsync();
 
         return NoContent();
