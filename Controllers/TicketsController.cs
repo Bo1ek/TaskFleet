@@ -177,7 +177,7 @@ public class TicketsController : ControllerBase
         var ticket = await _context.Tickets.FindAsync(id);
         if (ticket == null)
         {
-            return NotFound();
+            return NotFound(new { Message = "Ticket not found." });
         }
 
         if (!string.IsNullOrEmpty(updateRequest.AssignedUserId))
@@ -193,7 +193,13 @@ public class TicketsController : ControllerBase
         ticket.Title = updateRequest.Title ?? ticket.Title;
         ticket.Description = updateRequest.Description ?? ticket.Description;
 
+        if (updateRequest.Status.HasValue)
+        {
+            ticket.Status = updateRequest.Status.Value;
+        }
+
         await _context.SaveChangesAsync();
-        return NoContent();
+        return Ok(new { Message = "Ticket updated successfully.", Ticket = ticket });
     }
+
 }

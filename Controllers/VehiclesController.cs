@@ -55,15 +55,16 @@ public class VehiclesController : ControllerBase
     {
         var existingVehicle = await _context.Vehicles.FindAsync(id);
         if (existingVehicle == null) return NotFound();
-        
+
         if (!string.IsNullOrWhiteSpace(request.Name))
             existingVehicle.Name = request.Name;
-        
+
         if (request.IsAvailable.HasValue)
             existingVehicle.IsAvailable = request.IsAvailable.Value;
-        
+
         existingVehicle.AssignedTicketId = request.AssignedTicketId;
-        
+        existingVehicle.IsAvailable = !request.AssignedTicketId.HasValue;
+
         try
         {
             await _context.SaveChangesAsync();
@@ -76,14 +77,6 @@ public class VehiclesController : ControllerBase
                 throw;
         }
 
-        if (request.AssignedTicketId.HasValue)
-        {
-            existingVehicle.AssignedTicketId = request.AssignedTicketId;
-            existingVehicle.IsAvailable = false;
-        }
-        else existingVehicle.IsAvailable = true;
-
-        existingVehicle.IsAvailable = request.AssignedTicketId == null;
         return NoContent();
     }
     

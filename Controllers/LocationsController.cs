@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskFleet.Data;
+using TaskFleet.DTOs;
 using TaskFleet.DTOs.Requests;
 using TaskFleet.Models;
 
@@ -18,11 +19,21 @@ public class LocationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Location>>> GetLocations()
+    public async Task<ActionResult<IEnumerable<LocationDto>>> GetLocations()
     {
-        return await _context.Locations.ToListAsync();
-    }
+        var locations = await _context.Locations
+            .Select(l => new LocationDto
+            {
+                LocationId = l.LocationId,
+                City = l.City,
+                Latitude = l.Latitude,
+                Longitude = l.Longitude,
+                Address = l.Address
+            })
+            .ToListAsync();
 
+        return Ok(locations);
+    }
     [HttpGet("{id}")]
     public async Task<ActionResult<Location>> GetLocation(int id)
     {
