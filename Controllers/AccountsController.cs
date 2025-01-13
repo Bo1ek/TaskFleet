@@ -219,6 +219,59 @@ public class AccountsController : ControllerBase
             return StatusCode(500, new { Message = "An error occurred", Details = ex.Message });
         }
     }
+    
+    [HttpGet("roles")]
+    public IActionResult GetRoles()
+    {
+        var roles = new List<string> { "SuperAdmin", "Admin", "Client", "Hr", "Driver" }; 
+        return Ok(roles);
+    }
+    
+    [HttpPost("create-user")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var user = new User
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+        };
+
+        var result = await _userManager.CreateAsync(user, model.Password);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        if (!string.IsNullOrEmpty(model.Role))
+        {
+            var roleResult = await _userManager.AddToRoleAsync(user, model.Role);
+            if (!roleResult.Succeeded)
+                return BadRequest(roleResult.Errors);
+        }
+
+        if (model.LicenseIds != null && model.LicenseIds.Any())
+        {
+            foreach (var licenseId in model.LicenseIds)
+            {
+                var license = await _context.Licenses.FindAsync(licenseId);
+                if (license == null)
+                    return NotFound($"License ID {licenseId} not found.");
+
+                user.Licenses ??= new List<License>();
+                user.Licenses.Add(license);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new { Message = "User created successfully!" });
+    }
+
+
 
 
 }

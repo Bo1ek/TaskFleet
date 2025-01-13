@@ -10,9 +10,12 @@ public class User : IdentityUser
     [MinLength(3)]
     [MaxLength(255)]
     public string? FirstName { get; set; }
+
     [PersonalData]
     [Required]
     [MinLength(3)]
     [MaxLength(255)]
     public string? LastName { get; set; }
+
+    public ICollection<License>? Licenses { get; set; }
 }

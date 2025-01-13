@@ -19,4 +19,5 @@ public class Vehicle
     public bool IsAvailable { get; set; } = true;
     public int? AssignedTicketId { get; set; }
     public Ticket? AssignedTicket { get; set; }
+    public int LicenseId { get; set; }
 }
