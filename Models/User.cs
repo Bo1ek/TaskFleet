@@ -18,4 +18,5 @@ public class User : IdentityUser
     public string? LastName { get; set; }
 
     public ICollection<License>? Licenses { get; set; }
+    public bool IsAvailable { get; set; } = true;
 }
