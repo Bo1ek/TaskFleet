@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskFleet.Data;
+using TaskFleet.DTOs;
 using TaskFleet.DTOs.Requests;
 using TaskFleet.Enums;
 using TaskFleet.Models;
@@ -21,17 +22,37 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Ticket>>> GetAllTickets()
+    public async Task<ActionResult<IEnumerable<TicketDTO>>> GetAllTickets()
     {
-        return await _context.Tickets
+        var tickets = await _context.Tickets
             .Include(t => t.AssignedUser)
             .Include(t => t.StartLocation)
             .Include(t => t.EndLocation)
+            .Include(t => t.AssignedVehicle)
+            .Select(t => new TicketDTO
+            {
+                TicketId = t.TicketId,
+                Title = t.Title,
+                Description = t.Description,
+                CreatedDate = t.CreatedDate,
+                DueDate = t.DueDate,
+                AssignedUserId = t.AssignedUserId,
+                AssignedUserName = t.AssignedUser != null ? $"{t.AssignedUser.FirstName} {t.AssignedUser.LastName}" : "Unassigned",
+                AssignedVehicleName = t.AssignedVehicle != null ? t.AssignedVehicle.Name : "No Vehicle Assigned",
+                StartLocationCity = t.StartLocation.City,
+                EndLocationCity = t.EndLocation.City,
+                Status = t.Status
+            })
             .ToListAsync();
+
+        return Ok(tickets);
     }
 
+
     [HttpGet("MyTickets")]
-    public async Task<ActionResult<IEnumerable<Ticket>>> GetMyTickets()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TicketDTO>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<TicketDTO>>> GetMyTickets()
     {
         var userId = User.FindFirst("UserId")?.Value;
 
@@ -43,24 +64,57 @@ public class TicketsController : ControllerBase
             .Include(t => t.AssignedUser)
             .Include(t => t.StartLocation)
             .Include(t => t.EndLocation)
+            .Include(t => t.AssignedVehicle)
+            .Select(t => new TicketDTO
+            {
+                TicketId = t.TicketId,
+                Title = t.Title,
+                Description = t.Description,
+                CreatedDate = t.CreatedDate,
+                DueDate = t.DueDate,
+                AssignedUserName = t.AssignedUser != null ? $"{t.AssignedUser.FirstName} {t.AssignedUser.LastName}" : null,
+                AssignedVehicleName = t.AssignedVehicle.Name,
+                StartLocationCity = t.StartLocation.City,
+                EndLocationCity = t.EndLocation.City,
+                Status = t.Status
+            })
             .ToListAsync();
 
         return Ok(tickets);
     }
 
 
+
     [HttpGet("{id}")]
-    public async Task<ActionResult<Ticket>> GetTicketById(int id)
+    public async Task<ActionResult<TicketDTO>> GetTicketById(int id)
     {
         var ticket = await _context.Tickets
             .Include(t => t.AssignedUser)
             .Include(t => t.StartLocation)
             .Include(t => t.EndLocation)
+            .Include(t => t.AssignedVehicle)
+            .Select(t => new TicketDTO
+            {
+                TicketId = t.TicketId,
+                Title = t.Title,
+                Description = t.Description,
+                CreatedDate = t.CreatedDate,
+                DueDate = t.DueDate,
+                AssignedUserId = t.AssignedUserId,
+                AssignedUserName = t.AssignedUser != null ? $"{t.AssignedUser.FirstName} {t.AssignedUser.LastName}" : null,
+                AssignedVehicleName = t.AssignedVehicle.Name,
+                StartLocationCity = t.StartLocation.City,
+                EndLocationCity = t.EndLocation.City,
+                Status = t.Status
+            })
             .FirstOrDefaultAsync(t => t.TicketId == id);
+
         if (ticket == null)
             return NotFound();
-        return ticket;
+
+        return Ok(ticket);
     }
+
 
     [HttpPost("RequestATicket")]
     public async Task<ActionResult<Ticket>> CreateTicketAsAClient(CreateTicketRequest createTicketRequest)
@@ -259,48 +313,5 @@ public class TicketsController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { Message = "Ticket updated successfully.", Ticket = ticket });
     }
-    // [HttpPost("{ticketId}/send-kml-email")]
-    // public async Task<IActionResult> SendKmlEmail(int ticketId, [FromBody] KmlEmailRequest request)
-    // {
-    //     var ticket = await _context.Tickets.FindAsync(ticketId);
-    //     if (ticket == null)
-    //         return NotFound(new { Message = "Ticket not found." });
-    //
-    //     if (string.IsNullOrEmpty(request.KmlData))
-    //         return BadRequest(new { Message = "KML data is required." });
-    //
-    //     try
-    //     {
-    //         // Save the KML file temporarily
-    //         var kmlFilePath = Path.Combine(Path.GetTempPath(), "route.kml");
-    //         await System.IO.File.WriteAllTextAsync(kmlFilePath, request.KmlData);
-    //
-    //         // Compose and send the email
-    //         var emailService = new EmailService();
-    //         string subject = "Route for Your Ticket";
-    //         string body = $@"
-    //         Dear User,
-    //         <br/><br/>
-    //         Attached is the route for your ticket with ID: {ticketId}.
-    //         <br/><br/>
-    //         Best regards,<br/>
-    //         TaskFleet Team
-    //     ";
-    //
-    //         // Attach the KML file
-    //         emailService.SendEmailWithAttachment(ticket.AssignedUser.Email, subject, body, kmlFilePath);
-    //
-    //         // Optionally delete the file after sending the email
-    //         System.IO.File.Delete(kmlFilePath);
-    //
-    //         return Ok(new { Message = "KML email sent successfully." });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error sending email: {ex.Message}");
-    //         return StatusCode(500, new { Message = "An error occurred while sending the email." });
-    //     }
-    // }
-
-    
+   
 }
